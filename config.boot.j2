@@ -1,0 +1,63 @@
+interfaces {
+    ethernet eth0 {
+        address {{ wan_ip }}/24
+    }
+    ethernet eth1 {
+        address {{ lan_ip}}/24
+    }
+    loopback lo {
+    }
+}
+service {
+    ssh {
+        listen-address 0.0.0.0
+    }
+}
+system {
+    config-management {
+        commit-revisions 100
+    }
+    conntrack {
+        modules {
+            ftp
+            h323
+            nfs
+            pptp
+            sip
+            sqlnet
+            tftp
+        }
+    }
+    console {
+        device ttyS0 {
+            speed 115200
+        }
+    }
+    host-name vyos
+    login {
+        user vyos {
+            authentication {
+                encrypted-password {{ password_hash }}
+                plaintext-password ""
+            }
+        }
+    }
+    ntp {
+        server time1.vyos.net {
+        }
+        server time2.vyos.net {
+        }
+        server time3.vyos.net {
+        }
+    }
+    syslog {
+        global {
+            facility all {
+                level info
+            }
+            facility protocols {
+                level debug
+            }
+        }
+    }
+}
