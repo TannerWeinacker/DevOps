@@ -31,6 +31,7 @@ function main_menu{
   5: Create Linked Clone
   6: Create Full Clone
   7: Get IP
+  8: Set Static Windows IP
   9: Exit
   " -ForegroundColor "Green"
   Write-Host "==================" -ForegroundColor "Green"
@@ -57,6 +58,9 @@ function main_menu{
         }
         '7'{
             Get-IP
+        }
+        '8'{
+            windows_static
         }
         '9'{
             Disconnect-VIServer -server *
@@ -302,8 +306,32 @@ function createfull{
     main_menu
 }
 
+function windows_static{
+    Clear-Host
+    Get-VM
+    $vmList = Get-VM
+    $vmName = Read-Host "What VM would you like to assign an IP for"
+    foreach ($vm in $vmList) {
+    if ($vm.Name -eq $vmName) {
+        # VM is found, write message and end loop
+        Write-Host "The VM '$vmName' has been found."
+        break
+    }
+} 
+if ($vm.Name -ne $vmName) {
+        Read-Host "The VM '$vmName' was not found. Press Enter to try again."
+    } 
+$Guest_Username = "Administrator"
+$Credential = Read-Host -Prompt 'What is the password for the account' -AsSecureString
+# Set the VMs IP
+Invoke-VMScript -VM $vmName -ScriptText "netsh interface ip set address 'Ethernet0' static 10.0.5.6 255.255.255.0 10.0.5.2" -GuestUser $Guest_Username -GuestPassword $Credential
+# Set the VMs DNS
+Invoke-VMScript -VM $vmName -GuestUser $Guest_Username -GuestPassword $Credential -ScriptText "netsh interface ipv4 add dns 'Ethernet0' 10.0.5.2 index=1"
+#Check Config
+Invoke-VMScript -VM $vmName -GuestUser $Guest_Username -GuestPassword $Credential -ScriptText "ipconfig /all"
+}
 
 # Full Clone
 Clear-Host
 vcenterconnection
- main_menu 
+main_menu 
