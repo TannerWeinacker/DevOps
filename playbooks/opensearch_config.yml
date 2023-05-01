@@ -1,0 +1,25 @@
+- name: Install OpenSearch
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Add OpenSearch repository
+      apt_repository:
+        repo: 'deb https://artifacts.opensearch.org/releases/apt stable main'
+        state: present
+
+    - name: Import OpenSearch GPG key
+      apt_key:
+        url: https://artifacts.opensearch.org/GPG-KEY-opensearch
+        state: present
+
+    - name: Install OpenSearch
+      apt:
+        name: opensearch
+        state: present
+
+    - name: Start OpenSearch service
+      service:
+        name: opensearch
+        state: started
+        enabled: yes

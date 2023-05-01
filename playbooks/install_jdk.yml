@@ -1,0 +1,78 @@
+- name: Install latest version of Java
+  hosts: graylog
+  become: yes
+  tasks:
+      - name: Install gnupg package
+        apt:
+          name: gnupg
+          state: present
+      - name: Add focal-security repository
+        shell: echo "deb http://security.ubuntu.com/ubuntu focal-security main" | sudo tee /etc/apt/sources.list.d/focal-security.list
+        register: repo
+
+      - name: Update package repositories
+        apt:
+          update_cache: yes
+
+      - name: Install dependencies
+        apt:
+          name:
+            - libssl-dev
+            - libcurl4
+            - libcurl4-openssl-dev
+            - libicu-dev
+            - libkrb5-dev
+            - libldap2-dev
+            - liblzma-dev
+            - libnuma-dev
+            - libsasl2-dev
+            - libsnappy-dev
+            - libssl1.1
+            - pkg-config
+          state: present
+
+      - name: Remove Focal-Security Repository
+        shell: sudo rm /etc/apt/sources.list.d/focal-security.list
+        register: repo
+
+      - name: Update package repositories
+        apt:
+          update_cache: yes
+
+      - name: Upgrade installed packages
+        apt:
+          upgrade: yes
+
+
+      - name: Add MongoDB GPG key
+        apt_key:
+          url: https://www.mongodb.org/static/pgp/server-5.0.asc
+          state: present
+
+      - name: Add MongoDB APT repository
+        apt_repository:
+          repo: deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse
+          state: present
+
+      # - name: Install MongoDB
+      #   apt:
+      #     deb: https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.2_amd64.deb
+      #     update_cache: yes
+      #     install_recommends: no
+      #     state: present
+
+
+      - name: Start MongoDB service
+        service:
+          name: mongod
+          state: started
+          enabled: yes
+        become: yes
+
+      # - name: Install OpenJDK
+      #   become: yes
+      #   apt:
+      #     name: openjdk-11-jdk
+      #     state: present
+      #   vars:
+      #     ansible_python_interpreter: /usr/bin/

@@ -1,0 +1,21 @@
+- name: Deploy a graylog agent using rsyslog
+  hosts: graylog_agent
+  become: yes
+  tasks:
+    - name: Create conf file
+      file:
+        path: "/etc/rsyslog.d/graylog.conf"
+        state: touch
+        mode: 0644
+    - name: Add contents to new conf file
+      blockinfile:
+        dest: /etc/rsyslog.d/graylog.conf
+        block: "*.* @10.0.5.35:1514;RSYSLOG_SyslogProtocol23Format"
+      notify:
+        - Restart Rsyslog
+      
+  handlers:
+    - name: Restart Rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted

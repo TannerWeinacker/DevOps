@@ -1,0 +1,8 @@
+#Milestone 8
+hosts:
+  children:
+    windows:
+      hosts:
+        10.0.5.5
+      vars:
+        interpreter_python: /usr/bin/python3

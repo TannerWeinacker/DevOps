@@ -1,0 +1,19 @@
+#ansible-playbook -i inventory/fw-blue1-dhcp-vars.yml vyos-dhcp.yml --user vyos --ask-pass 
+- name: Define hosts
+  hosts: vyos
+
+- name: Configure vyos dhcp
+  hosts: vyos
+  connection: ansible_connection
+  tasks:
+    - name: Set vyos dhcp config
+      vyos.vyos.vyos_config:
+        lines:
+          - set service dhcp-server global-parameter 'local-address {{ lan_ip }};' 
+          - set service dhcp-server shared-network-name {{ shared_network_name }} authoritative
+          - set service dhcp-server shared-network-name {{ shared_network_name }} subnet {{lan_mask}} default-router {{lan_ip}}
+          - set service dhcp-server shared-network-name {{ shared_network_name }} subnet {{lan_mask}} domain-name {{domain_name}}
+          - set service dhcp-server shared-network-name {{shared_network_name}} subnet {{lan_mask}} lease 86400
+          - set service dhcp-server shared-network-name {{shared_network_name}} subnet {{lan_mask}} name-server {{name_server}}
+          - set service dhcp-server shared-network-name {{shared_network_name}} subnet {{lan_mask}} range {{range_name}} start '10.0.5.75'
+          - set service dhcp-server shared-network-name {{shared_network_name}} subnet {{lan_mask}} range {{range_name}} stop '10.0.5.125'

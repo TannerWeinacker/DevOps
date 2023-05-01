@@ -1,0 +1,61 @@
+# This playbook performs post provisining configuration of rocky
+- name: Config Rocky
+  hosts: rocky
+  tasks:
+    - name: Define Hostname
+      hostname:
+        name: "{{ hostname }}"
+      become: yes
+      become_method: su
+
+    - name: create the .ssh directory if it is not there
+      file:
+        path: "/home/{{ ansible_user }}/.ssh"
+        state: directory
+        mode: 0700
+
+    - name: create authorized_keys file
+      file:
+        path: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        state: touch
+        mode: 0644
+
+    - name: copy over key block and append to authorized_keys
+      blockinfile:
+        dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        block: "{{ public_key }}"
+
+    - name: create sudoers dropin file for 480
+      file:
+        path: /etc/sudoers.d/480
+        state: touch
+        mode: 0440
+      become: yes
+      become_method: su
+
+    - name: create a drop in entry in /etc/sudoers.d/480
+      blockinfile:
+        dest: "/etc/sudoers.d/480"
+        block: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+      become: yes
+      become_method: su
+
+    - name: Set Network Configuration
+      nmcli:
+        conn_name: "{{ device }}"
+        ip4: "{{ lan_ip }}/24"
+        gw4: "{{ gateway }}"
+        state: present
+        type: ethernet
+        dns4:
+          - "{{ name_server }}"
+          - "{{ gateway }}"
+        method4: manual
+      become: yes
+      become_method: su
+
+    - name: bounce the box
+      shell: "sleep 5 && shutdown -r"
+      become: yes
+      async: 1
+      poll: 0

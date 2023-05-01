@@ -1,0 +1,15 @@
+vyos:
+  hosts:
+    10.0.17.200:
+      ansible_connection: ansible.netcommon.network_cli
+      ansible_network_os: vyos
+  vars:
+    hostname: vyos
+    mac: 00:50:56:9d:75:e7 
+    lan_ip: 10.0.5.2
+    lan_mask: 10.0.5.0/24 
+    domain_name: blue1 
+    name_server: 10.0.5.5 
+    shared_network_name: blue1 
+    range_name: blue1-pool
+    ansible_python_interpreter: /usr/bin/python3

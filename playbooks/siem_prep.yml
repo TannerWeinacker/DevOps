@@ -1,0 +1,55 @@
+# This playbook performs post provisining configuration of ubuntu
+- name: Config graylog
+  hosts: graylog
+  tasks:
+    - name: Define Hostname
+      hostname:
+        name: "{{ hostname }}"
+      become: yes
+
+    - name: create the .ssh directory if it is not there
+      file:
+        path: "/home/{{ ansible_user }}/.ssh"
+        state: directory
+        mode: 0700
+
+    - name: create authorized_keys file
+      file:
+        path: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        state: touch
+        mode: 0644
+
+    - name: copy over key block and append to authorized_keys
+      blockinfile:
+        dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        block: "{{ public_key }}"
+
+    - name: create sudoers dropin file for 480
+      file:
+        path: /etc/sudoers.d/480
+        state: touch
+        mode: 0440
+      become: yes
+
+    - name: create a drop in entry in /etc/sudoers.d/480
+      blockinfile:
+        dest: "/etc/sudoers.d/480"
+        block: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+      become: yes
+
+    - name: Set Network Configuration
+      become: yes
+      template:
+        src: files/ubuntu_netplan.j2
+        dest: /etc/netplan/00-installer-config.yaml
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: bounce the box
+      shell: "sleep 5 && shutdown -r"
+      become: yes
+      async: 1
+      poll: 0
+  roles:
+        - role: lean_delivery.java
